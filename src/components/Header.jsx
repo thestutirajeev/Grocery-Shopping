@@ -58,7 +58,7 @@ export default function Header() {
           🛒
           {cart.length > 0 && (
             <span className="absolute -top-2 -right-2 bg-green-600 text-white text-xs px-1 rounded-full">
-              {cart.length}
+              {cart.reduce((sum, item) => sum + item.quantity, 0)}
             </span>
           )}
         </Link>

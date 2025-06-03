@@ -3,6 +3,7 @@ import { useState } from "react";
 const categories = ["All items", "Drinks", "Fruit", "Bakery"];
 
 export default function SearchPage() {
+  const [clicked, setClicked] = useState(null); // track last clicke product
   const { products, addToCart, favorites, toggleFavorites } = useProducts();
   const [selectedCategory, setSelectedCategory] = useState("All items");
 
@@ -75,11 +76,20 @@ export default function SearchPage() {
                 <p className="font-bold">{p.price}</p>
                 <div className="flex gap-3">
                   <button
-                    onClick={() => addToCart(p)}
-                    className="text-green-600 text-lg"
-                    title="Add to Cart"
+                    onClick={() => {
+                      if (p.available > 0) {
+                        addToCart(p);
+                        setClicked(p.id);
+                        setTimeout(() => setClicked(null), 800); // reset
+                      }
+                    }}
+                    className={`text-green-600 text-lg transition duration-200 ${
+                      p.available === 0 ? "opacity-50 cursor-not-allowed" : ""
+                    }`}
+                    title={p.available === 0 ? "Out of Stock" : "Add to Cart"}
+                    disabled={p.available === 0}
                   >
-                    🛒
+                    {clicked === p.id ? "✅" : "🛒"}
                   </button>
                   <button
                     onClick={() => toggleFavorites(p)}

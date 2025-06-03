@@ -135,11 +135,16 @@ export default function CheckoutPage() {
                           +
                         </button>
                       </div>
-                      {item.available < 10 && (
-                        <div className="bg-orange-500 text-white text-xs px-2 py-1 rounded mt-1">
-                          Only {item.available} left
-                        </div>
-                      )}
+
+                      {/* 💡 Use latest product availability */}
+                      {(() => {
+                        const product = products.find((p) => p.id === item.id);
+                        return product?.available < 10 ? (
+                          <div className="bg-orange-500 text-white text-xs px-2 py-1 rounded mt-1">
+                            Only {product.available} left
+                          </div>
+                        ) : null;
+                      })()}
                     </>
                   ) : (
                     <span className="text-gray-500 px-2 text-sm">

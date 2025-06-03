@@ -34,33 +34,89 @@ export const ProductsProvider = ({ children }) => {
   }, [category]);
 
   const addToCart = (product) => {
+    const latestProduct = products.find((p) => p.id === product.id);
+    if (!latestProduct) return;
+
+    if (latestProduct.available <= 0) {
+      alert("You cannot add more than available stock");
+      return;
+    }
+
+    const existingItem = cart.find((item) => item.id === product.id);
+
+    // 1. Update cart
     setCart((prevCart) => {
-      const existing = prevCart.find((item) => item.id === product.id);
-      if (existing) {
-        return prevCart.map((item) =>
-          item.id === product.id
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
-        );
-      } else {
-        return [...prevCart, { ...product, quantity: 1 }];
-      }
+      return existingItem
+        ? prevCart.map((item) =>
+            item.id === product.id
+              ? { ...item, quantity: item.quantity + 1 }
+              : item
+          )
+        : [...prevCart, { ...product, quantity: 1 }];
     });
-  };
 
-  const removeFromCart = (id) => {
-    setCart((prevCart) => prevCart.filter((item) => item.id !== id));
-  };
-
-  const updateQuantity = (id, quantity) => {
-    setCart((prevCart) =>
-      prevCart.map((item) => (item.id === id ? { ...item, quantity } : item))
+    // 2. Update available stock
+    setProducts((prevProducts) =>
+      prevProducts.map((item) =>
+        item.id === product.id
+          ? { ...item, available: item.available - 1 }
+          : item
+      )
     );
   };
 
-  const filteredProducts = products.filter((product) =>
-    product.name.toLowerCase().includes(searchTerm.toLowerCase())
+  const removeFromCart = (id) => {
+    const itemToRemove = cart.find((item) => item.id === id);
+    if (itemToRemove) {
+      setProducts((prevProducts) =>
+        prevProducts.map((prod) =>
+          prod.id === id
+            ? { ...prod, available: prod.available + itemToRemove.quantity }
+            : prod
+        )
+      );
+    }
+
+    setCart((prevCart) => prevCart.filter((item) => item.id !== id));
+  };
+
+  const updateQuantity = (id, newQuantity) => {
+    const product = products.find((p) => p.id === id);
+    const cartItem = cart.find((c) => c.id === id);
+
+    if (!product || !cartItem) return;
+
+    const quantityDiff = newQuantity - cartItem.quantity;
+
+    if (quantityDiff > 0 && product.available < quantityDiff) {
+      alert("You cannot add more than available stock");
+      return;
+    }
+
+    // 1. Update cart
+    setCart((prevCart) =>
+      prevCart.map((item) =>
+        item.id === id ? { ...item, quantity: newQuantity } : item
+      )
+    );
+
+    // 2. Update product availability
+    setProducts((prevProducts) =>
+      prevProducts.map((prod) =>
+        prod.id === id
+          ? { ...prod, available: prod.available - quantityDiff }
+          : prod
+      )
+    );
+  };
+
+  const filteredProducts = products.filter((product) => {
+  const term = searchTerm.toLowerCase();
+  return (
+    product.name.toLowerCase().includes(term) ||
+    product.description.toLowerCase().includes(term)
   );
+});
 
   return (
     <ProductsContext.Provider
