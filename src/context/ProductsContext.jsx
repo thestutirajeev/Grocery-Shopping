@@ -37,14 +37,34 @@ export const ProductsProvider = ({ children }) => {
     const latestProduct = products.find((p) => p.id === product.id);
     if (!latestProduct) return;
 
+    const existingItem = cart.find((item) => item.id === product.id);
+    const newQuantity = existingItem ? existingItem.quantity + 1 : 1;
+
+    // Special rule for Coca-Cola (ID: 642)
+    if (product.id === 642) {
+      const totalNeededStock = newQuantity + Math.floor(newQuantity / 6);
+      if (totalNeededStock > latestProduct.available) {
+        alert("Not enough stock to apply free item offer for Coca-Cola.");
+        return;
+      }
+    }
+
+    // Special rule for Croissant (ID: 532) → triggers free Coffee (ID: 641)
+    if (product.id === 532) {
+      const freeCoffeeCount = Math.floor(newQuantity / 3);
+      const coffeeProduct = products.find((p) => p.id === 641);
+      if (coffeeProduct && coffeeProduct.available < freeCoffeeCount) {
+        alert(`Not enough Coffee stock to apply free item offer.`);
+      }
+    }
+
+    // Normal stock check
     if (latestProduct.available <= 0) {
       alert("You cannot add more than available stock");
       return;
     }
 
-    const existingItem = cart.find((item) => item.id === product.id);
-
-    // 1. Update cart
+    // Update cart
     setCart((prevCart) => {
       return existingItem
         ? prevCart.map((item) =>
@@ -55,7 +75,7 @@ export const ProductsProvider = ({ children }) => {
         : [...prevCart, { ...product, quantity: 1 }];
     });
 
-    // 2. Update available stock
+    // Update global stock of the main product
     setProducts((prevProducts) =>
       prevProducts.map((item) =>
         item.id === product.id
@@ -88,19 +108,40 @@ export const ProductsProvider = ({ children }) => {
 
     const quantityDiff = newQuantity - cartItem.quantity;
 
+    // Special rule for Coca-Cola (ID: 642)
+    if (id === 642) {
+      const totalNeededStock = newQuantity + Math.floor(newQuantity / 6);
+      if (totalNeededStock > product.available + cartItem.quantity) {
+        alert("Not enough stock to apply free item offer for Coca-Cola.");
+        return;
+      }
+    }
+
+    // Special rule for Croissant (ID: 532) → triggers free Coffee (ID: 641)
+    if (id === 532) {
+      const freeCoffeeCount = Math.floor(newQuantity / 3);
+      const coffeeProduct = products.find((p) => p.id === 641);
+      if (coffeeProduct && coffeeProduct.available < freeCoffeeCount) {
+        alert(
+          `Not enough Coffee stock to apply free item offer. Only ${coffeeProduct.available} Coffee(s) available.`
+        );
+        return;
+      }
+    }
+
     if (quantityDiff > 0 && product.available < quantityDiff) {
       alert("You cannot add more than available stock");
       return;
     }
 
-    // 1. Update cart
+    // Update cart
     setCart((prevCart) =>
       prevCart.map((item) =>
         item.id === id ? { ...item, quantity: newQuantity } : item
       )
     );
 
-    // 2. Update product availability
+    // Update product availability
     setProducts((prevProducts) =>
       prevProducts.map((prod) =>
         prod.id === id
@@ -111,12 +152,12 @@ export const ProductsProvider = ({ children }) => {
   };
 
   const filteredProducts = products.filter((product) => {
-  const term = searchTerm.toLowerCase();
-  return (
-    product.name.toLowerCase().includes(term) ||
-    product.description.toLowerCase().includes(term)
-  );
-});
+    const term = searchTerm.toLowerCase();
+    return (
+      product.name.toLowerCase().includes(term) ||
+      product.description.toLowerCase().includes(term)
+    );
+  });
 
   return (
     <ProductsContext.Provider

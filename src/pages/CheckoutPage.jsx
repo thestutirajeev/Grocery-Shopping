@@ -18,13 +18,13 @@ export default function CheckoutPage() {
     // Offer 1: Buy 6 Coca-Cola, get 1 free
     if (cocaColaInCart && cocaCola) {
       const freeCokeCount = Math.floor(cocaColaInCart.quantity / 6);
-      for (let i = 0; i < freeCokeCount; i++) {
+      if (freeCokeCount > 0) {
         offerItems.push({
-          id: `free-coke-${i}`,
+          id: `free-coke`,
           name: "Coca-Cola (Free)",
-          price: cocaCola.price,
+          price: "£0.00",
           img: cocaCola.img,
-          quantity: 1,
+          quantity: freeCokeCount,
           isFree: true,
         });
       }
@@ -33,13 +33,13 @@ export default function CheckoutPage() {
     // Offer 2: Buy 3 Croissants, get 1 Coffee free
     if (croissantInCart && coffee) {
       const freeCoffeeCount = Math.floor(croissantInCart.quantity / 3);
-      for (let i = 0; i < freeCoffeeCount; i++) {
+      if (freeCoffeeCount > 0) {
         offerItems.push({
-          id: `free-coffee-${i}`,
+          id: `free-coffee`,
           name: "Coffee (Free)",
-          price: coffee.price,
+          price: "£0.00",
           img: coffee.img,
-          quantity: 1,
+          quantity: freeCoffeeCount,
           isFree: true,
         });
       }
@@ -136,7 +136,7 @@ export default function CheckoutPage() {
                         </button>
                       </div>
 
-                      {/* 💡 Use latest product availability */}
+                      {/* Availability */}
                       {(() => {
                         const product = products.find((p) => p.id === item.id);
                         return product?.available < 10 ? (
